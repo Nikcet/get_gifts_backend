@@ -1,67 +1,45 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import json
+from sql_api import DB
+from models import Gift, User
+
 
 app: FastAPI = FastAPI()
+db: DB = DB()
 
-@app.get("/")
-async def get_gifts():
-    with open("gifts.json", "r", encoding="utf8") as file:
-        gifts = json.load(file)
 
+@app.get("/gifts/")
+async def get_gifts() -> dict[str, list[Gift]]:
+    gifts = db.get_all_gifts()
     return {"gifts": gifts}
 
 
-@app.get("/{id}")
-async def get_gifts(id: str):
-    with open("gifts.json", "r", encoding="utf8") as file:
-        gifts = json.load(file)
-
-    for gift in gifts:
-        if gift["id"] == id:
-            return gift
-
-    return {"message": "The gift does not exist."}
-    
+@app.get("/gifts/{id}")
+async def get_gift(id: str) -> Gift:
+    gift = db.get_gift_by_id(id)
+    if gift:
+        return gift
+    raise HTTPException(status_code=404, detail="The gift does not exist.")
 
 
-@app.post("/")
-async def add_gift(new_gift: dict):
-    with open("gifts.json", "r", encoding="utf8") as file:
-        gifts = json.load(file)
-
-    gifts.append(new_gift)
-
-    with open("gifts.json", "w", encoding="utf8") as file:
-        json.dump(gifts, file, ensure_ascii=False, indent=4)
-
+@app.post("/gifts/")
+async def add_gift(new_gift: Gift) -> dict:
+    db.add_gift(new_gift.dict())
     return {"message": "Gift added successfully."}
 
 
-@app.put("/{id}")
-async def update_gift(id: str, new_gift: dict):
-    with open("gifts.json", "r", encoding="utf8") as file:
-        gifts = json.load(file)
-
-    for gift in gifts:
-        if gift["id"] == id:
-            gift.update(new_gift)
-
-    with open("gifts.json", "w", encoding="utf8") as file:
-        json.dump(gifts, file, ensure_ascii=False, indent=4)
-
+@app.put("/gifts/{id}")
+async def update_gift(id: str, updated_gift: Gift) -> dict:
+    db.update_gift(id, updated_gift.dict())
     return {"message": "Gift updated successfully."}
 
 
-@app.delete("/{id}")
-async def delete_gift(id: str):
-    with open("gifts.json", "r", encoding="utf8") as file:
-        gifts = json.load(file)
-
-    for i, gift in enumerate(gifts):
-        if gift["id"] == id:
-            del gifts[i]
-
-    with open("gifts.json", "w", encoding="utf8") as file:
-        json.dump(gifts, file, ensure_ascii=False, indent=4)
-
+@app.delete("/gifts/{id}")
+async def delete_gift(id: str, user_id: str) -> dict:
+    db.delete_gift(id)
     return {"message": f"Gift {id} deleted successfully."}
+
+
+@app.on_event("shutdown")
+def shutdown_event():
+    db.close()
