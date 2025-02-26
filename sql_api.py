@@ -1,5 +1,6 @@
 import sqlite3
 import json
+import bcrypt
 
 
 class DB:
@@ -23,7 +24,7 @@ class DB:
                 link TEXT NOT NULL,
                 photo TEXT,
                 is_reserved BOOLEAN NOT NULL,
-                user_id INTEGER,
+                user_id TEXT,
                 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             );
         """
@@ -134,6 +135,25 @@ class DB:
         cursor.execute("DELETE FROM gifts WHERE id = ?", (gift_id,))
         self.db.commit()
         cursor.close()
+
+    def create_user(self, user: dict):
+        hashed_password = bcrypt.hashpw(
+            user["password"].encode("utf-8"), bcrypt.gensalt()
+        )
+        cursor = self.db.cursor()
+        cursor.execute(
+            "INSERT INTO users (id, username, password) VALUES (?, ?, ?)",
+            (user["id"], user["username"], hashed_password.decode("utf-8")),
+        )
+        self.db.commit()
+        cursor.close()
+
+    def get_user_by_username(self, username: str):
+        cursor = self.db.cursor()
+        cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+        user = cursor.fetchone()
+        cursor.close()
+        return user
 
     def close(self):
         self.db.close()
