@@ -1,3 +1,4 @@
+from uuid import uuid4
 from fastapi import FastAPI, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from sql_api import DB
@@ -49,6 +50,26 @@ async def delete_gift(id: str) -> dict:
 @app.on_event("shutdown")
 def shutdown_event():
     db.close()
+
+
+
+@app.post("/register")
+async def register(user: User) -> dict:
+    existing_user = db.get_user_by_username(user.username)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already registered",
+        )
+
+    new_user = {
+        "id": str(uuid4()),  
+        "username": user.username,
+        "password": get_password_hash(user.password)  
+    }
+    db.create_user(new_user)  
+
+    return {"message": "User registered successfully."}
 
 
 @app.post("/login")
