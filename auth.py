@@ -5,20 +5,21 @@ from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from models import User
 from sql_api import DB
+import bcrypt
 
 SECRET_KEY = "some_secret_key"
 ALGORITHM = "HS256"
-ACCESS_TOKET_EXPIRE_MINUTES = 30
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
 
 def get_password_hash(password):
     return pwd_context.hash(password)
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
