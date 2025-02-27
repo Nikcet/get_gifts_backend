@@ -137,13 +137,10 @@ class DB:
         cursor.close()
 
     def create_user(self, user: dict):
-        hashed_password = bcrypt.hashpw(
-            user["password"].encode("utf-8"), bcrypt.gensalt()
-        )
         cursor = self.db.cursor()
         cursor.execute(
             "INSERT INTO users (id, username, password) VALUES (?, ?, ?)",
-            (user["id"], user["username"], hashed_password.decode("utf-8")),
+            (user["id"], user["username"], user["password"]),
         )
         self.db.commit()
         cursor.close()
@@ -153,7 +150,30 @@ class DB:
         cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
         user = cursor.fetchone()
         cursor.close()
-        return user
+        return {"user_id": user[0], "username": user[1]}
+
+    def get_user_by_id(self, user_id: str):
+        cursor = self.db.cursor()
+        cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+        user = cursor.fetchone()
+        cursor.close()
+        return {"user_id": user[0], "username": user[1]}
+
+    def get_all_users(self):
+        cursor = self.db.cursor()
+        cursor.execute("SELECT * FROM users")
+        users = cursor.fetchall()
+        cursor.close()
+
+        users_list = [
+            {
+                "id": user[0],
+                "username": user[1],
+                "password": user[2],
+            }
+            for user in users
+        ]
+        return users_list
 
     def close(self):
         self.db.close()
