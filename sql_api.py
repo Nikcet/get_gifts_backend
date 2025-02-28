@@ -150,7 +150,7 @@ class DB:
         cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
         user = cursor.fetchone()
         cursor.close()
-        return {"user_id": user[0], "username": user[1]}
+        return {"user_id": user[0], "username": user[1], "password": user[2]}
 
     def get_user_by_id(self, user_id: str):
         cursor = self.db.cursor()

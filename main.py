@@ -1,6 +1,7 @@
 from uuid import uuid4
 from fastapi import FastAPI, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.middleware.cors import CORSMiddleware
 from sql_api import DB
 from models import Gift, User
 from auth import *
@@ -9,8 +10,15 @@ from auth import *
 app = FastAPI()
 db = DB()
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Укажите разрешенные источники
+    allow_credentials=True,
+    allow_methods=["*"],  # Разрешите все методы
+    allow_headers=["*"],  # Разрешите все заголовки
+)
 
+ACCESS_TOKEN_EXPIRE_MINUTES = 60*7*30
 
 @app.get("/gifts/")
 async def get_gifts() -> dict[str, list[Gift]]:
@@ -89,7 +97,7 @@ async def register(user: dict) -> dict:
 @app.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = db.get_user_by_username(form_data.username)
-    if not user or not verify_password(form_data.password, user[2]):
+    if not user or not verify_password(form_data.password, user["password"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
