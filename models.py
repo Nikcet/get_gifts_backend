@@ -18,7 +18,7 @@ class Gift(BaseModel):
         return value
 
 class User(BaseModel):
-    id: str
+    user_id: str
     username: str
-    password: str
+    password: Optional[str]
     
