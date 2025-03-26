@@ -1,6 +1,4 @@
 import sqlite3
-import json
-import bcrypt
 from config import DATABASE_URL
 
 
@@ -30,6 +28,7 @@ class DB:
                 link TEXT NOT NULL,
                 photo TEXT,
                 is_reserved BOOLEAN NOT NULL,
+                reserve_owner TEXT,
                 user_id TEXT,
                 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             );
@@ -82,8 +81,8 @@ class DB:
 
     def add_gift(self, new_gift: dict):
         query = """
-                INSERT INTO gifts (id, name, cost, link, photo, is_reserved, user_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO gifts (id, name, cost, link, photo, is_reserved, reserve_owner, user_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """
         self.create_connection()
         cursor = self.connection.cursor()
@@ -97,6 +96,7 @@ class DB:
                     new_gift["link"],
                     new_gift["photo"],
                     new_gift["is_reserved"],
+                    new_gift["reserve_owner"],
                     new_gift["user_id"],
                 ),
             )
@@ -107,7 +107,7 @@ class DB:
     def update_gift(self, gift_id: str, updated_gift: dict):
         query = """
                 UPDATE gifts
-                SET name = ?, cost = ?, link = ?, photo = ?, is_reserved = ?, user_id = ?
+                SET name = ?, cost = ?, link = ?, photo = ?, is_reserved = ?, reserve_owner = ?, user_id = ?
                 WHERE id = ?
             """
         self.create_connection()
@@ -121,6 +121,7 @@ class DB:
                     updated_gift["link"],
                     updated_gift["photo"],
                     updated_gift["is_reserved"],
+                    updated_gift["reserve_owner"],
                     updated_gift["user_id"],
                     gift_id,
                 ),
