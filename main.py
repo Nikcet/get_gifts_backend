@@ -1,26 +1,26 @@
-from uuid import uuid4
-from fastapi import FastAPI, status, Depends
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from utils.sql_api import DB
-from models import Gift, User
-from auth import *
+from contextlib import asynccontextmanager
 from routers import gifts, users, db
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000", "http://localhost:8000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Starting up...")
+    yield
+    print("Shutting down...")
+    db.close()
+
+app.router.lifespan_context = lifespan
 
 app.include_router(gifts.router)
 app.include_router(users.router)
-
-@app.on_event("shutdown")
-def shutdown_event():
-    db.close()
