@@ -8,6 +8,7 @@ class Gift(BaseModel):
     link: str
     photo: Optional[str]
     is_reserved: bool
+    reserve_owner: Optional[str]
     user_id: str
     
     
