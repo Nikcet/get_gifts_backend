@@ -1,14 +1,18 @@
 import os
+import jwt
+import bcrypt
+
 from fastapi import FastAPI, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import JWTError, jwt
+
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
+
+from dotenv import load_dotenv
 from models import User
 from utils.sql_api import DB
-import bcrypt
-from dotenv import load_dotenv
 from routers import db
+from config import ALGORITHM
 
 load_dotenv()
 
@@ -17,7 +21,6 @@ if SECRET_KEY is None:
     raise ValueError(
         "SECRET_KEY не установлен. Пожалуйста, установите его в переменных окружения."
     )
-ALGORITHM = "HS256"
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -50,20 +53,15 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> dict[str, User]:
-
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        print(payload)
         username: str = payload.get("sub")
-        
         if username is None:
             raise credentials_exception
-        
-    except JWTError:
+    except jwt.PyJWTError:
         raise credentials_exception
-    
+
     user = db.get_user_by_username(username)
-    
     if user is None:
         raise credentials_exception
     return {"user": user}
