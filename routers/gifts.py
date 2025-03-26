@@ -1,8 +1,14 @@
 from uuid import uuid4
-from fastapi import APIRouter, HTTPException, Depends
+
+from fastapi import APIRouter, HTTPException, Depends, Request
+
+from utils.parsers import parse_url_ozon
 from models import Gift
+
 from auth import get_current_user
+
 from . import db
+
 
 router = APIRouter()
 
@@ -28,13 +34,31 @@ async def get_gifts_by_user(user_id: str) -> dict[str, list[Gift]]:
 
 
 @router.post("/gifts/", dependencies=[Depends(get_current_user)])
-async def add_gift(new_gift: dict) -> dict:
+async def add_gift(request: Request, gift_link: dict[str, str]) -> dict[str, str]:
+    token = request.headers.get("Authorization").replace("Bearer ", "")
+    current_user = await get_current_user(token)
+
+    if not token:
+        raise HTTPException(status_code=401, detail="Token not provided")
+
+    new_gift = {}
+
+    # парсинг данных с ozon
+    if "ozon.ru" in gift_link["link"]:
+        new_gift = await parse_url_ozon(gift_link["link"])
+
     new_gift["id"] = str(uuid4())
+    new_gift["user_id"] = current_user["user"]["user_id"]
+    new_gift["is_reserved"] = False
+    new_gift["reserve_owner"] = ""
+    new_gift["link"] = gift_link["link"]
+
     db.add_gift(new_gift)
+
     return {"message": "Gift added successfully."}
 
 
-@router.put("/gifts/{id}", dependencies=[Depends(get_current_user)])
+@router.put("/gifts/{id}")
 async def update_gift(id: str, updated_gift: Gift) -> dict:
     db.update_gift(id, updated_gift.dict())
     return {"message": "Gift updated successfully."}
