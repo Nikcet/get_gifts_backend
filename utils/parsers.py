@@ -3,7 +3,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common import NoSuchElementException
 import random
-import time
 import re
 
 headers = "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3&accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"

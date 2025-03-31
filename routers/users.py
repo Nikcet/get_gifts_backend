@@ -1,11 +1,11 @@
 import shortuuid
-from fastapi import APIRouter, HTTPException, status, Depends
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import APIRouter, HTTPException, status
 from auth import get_password_hash, verify_password, create_access_token
 from . import db
 from models import User
 from config import ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
+
 
 router = APIRouter()
 
@@ -53,4 +53,8 @@ async def login(credentials: dict) -> dict[str, str]:
     access_token = create_access_token(
         data={"sub": credentials["username"]}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer", "user_id": user["user_id"]}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_id": user["user_id"],
+    }

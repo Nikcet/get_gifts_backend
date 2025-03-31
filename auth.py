@@ -1,16 +1,14 @@
 import os
 import jwt
-import bcrypt
 
-from fastapi import FastAPI, HTTPException, status, Depends
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import HTTPException, status, Depends
+from fastapi.security import OAuth2PasswordBearer
 
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
 
 from dotenv import load_dotenv
 from models import User
-from utils.sql_api import DB
 from routers import db
 from config import ALGORITHM
 
@@ -21,7 +19,6 @@ if SECRET_KEY is None:
     raise ValueError(
         "SECRET_KEY не установлен. Пожалуйста, установите его в переменных окружения."
     )
-
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

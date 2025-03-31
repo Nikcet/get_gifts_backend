@@ -1,5 +1,15 @@
+import os
 import sqlite3
-from config import DATABASE_URL
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL is None:
+    raise ValueError(
+        "DATABASE_URL не установлен. Пожалуйста, установите его в переменных окружения."
+    )
+
 
 
 class DB:
