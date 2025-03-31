@@ -7,4 +7,3 @@ bcrypt>=3.2.0
 shortuuid>=1.0.1
 pydantic>=1.8.2
 selenium>=4.0.0
-sqlite3>=3.35.0
