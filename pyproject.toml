@@ -1,0 +1,23 @@
+[project]
+name = "getgiftsbackend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "bcrypt>=4.3.0",
+    "crypto>=1.4.1",
+    "dotenv>=0.9.9",
+    "fastapi>=0.115.11",
+    "pyjwt>=2.10.1",
+    "python-multipart>=0.0.20",
+    "ruff>=0.11.0",
+    "selenium>=4.29.0",
+    "shortuuid>=1.0.13",
+    "webdriver-manager>=4.0.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+]

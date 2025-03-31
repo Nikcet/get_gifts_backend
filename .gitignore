@@ -1,1 +1,4 @@
-gifts.json
+gifts.db
+__pycache__
+.env
+chrome-win64

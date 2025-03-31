@@ -1,67 +1,26 @@
 from fastapi import FastAPI
-import json
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+from routers import gifts, users, db
 
-app: FastAPI = FastAPI()
+app = FastAPI()
 
-@app.get("/")
-async def get_gifts():
-    with open("gifts.json", "r", encoding="utf8") as file:
-        gifts = json.load(file)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:8000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    return {"gifts": gifts}
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Starting up...")
+    yield
+    print("Shutting down...")
+    db.close()
 
+app.router.lifespan_context = lifespan
 
-@app.get("/{id}")
-async def get_gifts(id: str):
-    with open("gifts.json", "r", encoding="utf8") as file:
-        gifts = json.load(file)
-
-    for gift in gifts:
-        if gift["id"] == id:
-            return gift
-
-    return {"message": "The gift does not exist."}
-    
-
-
-@app.post("/")
-async def add_gift(new_gift: dict):
-    with open("gifts.json", "r", encoding="utf8") as file:
-        gifts = json.load(file)
-
-    gifts.append(new_gift)
-
-    with open("gifts.json", "w", encoding="utf8") as file:
-        json.dump(gifts, file, ensure_ascii=False, indent=4)
-
-    return {"message": "Gift added successfully."}
-
-
-@app.put("/{id}")
-async def update_gift(id: str, new_gift: dict):
-    with open("gifts.json", "r", encoding="utf8") as file:
-        gifts = json.load(file)
-
-    for gift in gifts:
-        if gift["id"] == id:
-            gift.update(new_gift)
-
-    with open("gifts.json", "w", encoding="utf8") as file:
-        json.dump(gifts, file, ensure_ascii=False, indent=4)
-
-    return {"message": "Gift updated successfully."}
-
-
-@app.delete("/{id}")
-async def delete_gift(id: str):
-    with open("gifts.json", "r", encoding="utf8") as file:
-        gifts = json.load(file)
-
-    for i, gift in enumerate(gifts):
-        if gift["id"] == id:
-            del gifts[i]
-
-    with open("gifts.json", "w", encoding="utf8") as file:
-        json.dump(gifts, file, ensure_ascii=False, indent=4)
-
-    return {"message": f"Gift {id} deleted successfully."}
+app.include_router(gifts.router)
+app.include_router(users.router)
