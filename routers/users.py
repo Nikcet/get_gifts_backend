@@ -40,11 +40,9 @@ async def register(user: dict) -> dict[str, str]:
 
 
 @router.post("/login")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict[str, str]:
-    user = db.get_user_by_username(form_data.username)
-    print(user)
-    print("form_data.password:", form_data.password)
-    if not user or not verify_password(form_data.password, user["password"]):
+async def login(credentials: dict) -> dict[str, str]:
+    user = db.get_user_by_username(credentials["username"])
+    if not user or not verify_password(credentials["password"], user["password"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -53,6 +51,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict[str, s
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": form_data.username}, expires_delta=access_token_expires
+        data={"sub": credentials["username"]}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer", "user_id": user["user_id"]}
