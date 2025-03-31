@@ -1,12 +1,8 @@
 from uuid import uuid4
-
 from fastapi import APIRouter, HTTPException, Depends, Request
-
 from utils.parsers import parse_url_ozon
 from models import Gift
-
 from auth import get_current_user
-
 from . import db
 
 
