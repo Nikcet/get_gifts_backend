@@ -7,11 +7,17 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "http://wishesbook.ru",
+        "https://wishesbook.ru"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,6 +25,7 @@ async def lifespan(app: FastAPI):
     yield
     print("Shutting down...")
     db.close()
+
 
 app.router.lifespan_context = lifespan
 
