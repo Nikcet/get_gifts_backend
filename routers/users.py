@@ -10,19 +10,19 @@ from datetime import timedelta
 router = APIRouter()
 
 
-@router.get("/users/")
+@router.get("/api/users/")
 async def get_users() -> dict[str, list[User]]:
     users = db.get_all_users()
     return {"users": users}
 
 
-@router.get("/users/{user_id}")
+@router.get("/api/users/{user_id}")
 async def get_user_by_id(user_id: str) -> dict[str, User]:
     user = db.get_user_by_id(user_id)
     return {"user": user}
 
 
-@router.post("/register")
+@router.post("/api/register")
 async def register(user: dict) -> dict[str, str]:
     existing_user = db.get_user_by_username(user["username"])
     if existing_user:
@@ -39,7 +39,7 @@ async def register(user: dict) -> dict[str, str]:
     return {"message": "User registered successfully."}
 
 
-@router.post("/login")
+@router.post("/api/login")
 async def login(credentials: dict) -> dict[str, str]:
     user = db.get_user_by_username(credentials["username"])
     if not user or not verify_password(credentials["password"], user["password"]):
