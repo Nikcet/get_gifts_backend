@@ -17,11 +17,13 @@ options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--headless")
 
-
 async def parse_url_ozon(url: str):
     name: str = ""
     photo: str = ""
     cost: float = 0.0
+    name_element = ""
+    photo_element = ""
+    cost_element = ""
 
     driver = webdriver.Chrome(options=options)
     driver.get(url)
@@ -38,10 +40,6 @@ async def parse_url_ozon(url: str):
     driver.execute_script(
         f"window.scrollTo({random.randint(1, 100)}, {random.randint(100, 1000)});"
     )
-
-    name_element = ""
-    photo_element = ""
-    cost_element = ""
 
     try:
         name_element = driver.find_element(By.TAG_NAME, "h1")
