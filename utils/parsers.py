@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common import NoSuchElementException
 import random
 import re
+import time
 
 from loguru import logger
 
@@ -42,11 +43,12 @@ async def parse_url_ozon(url: str):
     logger.debug(f"Driver: {driver}")
     driver.get(url)
 
+    # time.sleep(random.randint(2, 4))
     wait = WebDriverWait(
         driver, timeout=3, poll_frequency=0.5, ignored_exceptions=errors
     )
     try:
-        logger.debug("Try to fined elements.")
+        logger.debug("Try to find elements.")
         wait.until(
             lambda d: (
                 d.find_element(By.TAG_NAME, "h1").is_displayed(),
@@ -79,10 +81,10 @@ async def parse_url_ozon(url: str):
             logger.debug("Find photo: Success.")
         except Exception as e:
             logger.debug(f"Find photo: Failed. Error: {e}")
-            logger.debug("Try to find video element.")
             try:
-                video_element = driver.find_element(By.TAG_NAME, "video")
-                logger.debug("Find video: Success.")
+                # logger.debug("Try to find video element.")
+                # video_element = driver.find_element(By.TAG_NAME, "video")
+                # logger.debug("Find video: Success.")
                 logger.debug("Try to find other photo now.")
                 photo_element = driver.find_element(By.XPATH, '//img[contains(@src, "cover.jpg") and @loading="eager"]')
                 logger.debug("Find photo: Success.")
