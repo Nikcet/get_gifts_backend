@@ -1,28 +1,33 @@
+import os
+
 import shortuuid
 from fastapi import APIRouter, HTTPException, status
-from auth import get_password_hash, verify_password, create_access_token
+from utils.auth import get_password_hash, verify_password, create_access_token
 from . import db
-from models import User
-from config import ACCESS_TOKEN_EXPIRE_MINUTES
+from models.User import User
+from utils.config import ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
+from dotenv import load_dotenv
 
-
+load_dotenv()
 router = APIRouter()
 
+PRODUCTION = bool(int(os.getenv("PRODUCTION")))
+URL = "/api/" if PRODUCTION else "/"
 
-@router.get("/api/users/")
+@router.get(URL + "users/")
 async def get_users() -> dict[str, list[User]]:
     users = db.get_all_users()
     return {"users": users}
 
 
-@router.get("/api/users/{user_id}")
+@router.get(URL + "users/{user_id}")
 async def get_user_by_id(user_id: str) -> dict[str, User]:
     user = db.get_user_by_id(user_id)
     return {"user": user}
 
 
-@router.post("/api/register")
+@router.post(URL + "register")
 async def register(user: dict) -> dict[str, str]:
     existing_user = db.get_user_by_username(user["username"])
     if existing_user:
@@ -39,7 +44,7 @@ async def register(user: dict) -> dict[str, str]:
     return {"message": "User registered successfully."}
 
 
-@router.post("/api/login")
+@router.post(URL + "login")
 async def login(credentials: dict) -> dict[str, str]:
     user = db.get_user_by_username(credentials["username"])
     if not user or not verify_password(credentials["password"], user["password"]):
@@ -49,9 +54,8 @@ async def login(credentials: dict) -> dict[str, str]:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": credentials["username"]}, expires_delta=access_token_expires
+        data={"sub": credentials["username"]}, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     return {
         "access_token": access_token,
