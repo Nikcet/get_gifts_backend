@@ -45,7 +45,7 @@ async def get_gifts_by_user(user_id: str) -> dict[str, list[Gift]]:
     return {"gifts": gifts}
 
 
-@router.post("/gifts/", dependencies=[Depends(get_current_user)])
+@router.post(URL + "gifts/", dependencies=[Depends(get_current_user)])
 async def add_gift(request: Request, data: dict[str, str]) -> dict[str, str]:
     logger.info("Запрос на добавление подарка: ", data)
     
