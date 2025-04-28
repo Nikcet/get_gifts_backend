@@ -4,7 +4,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common import NoSuchElementException
 import random
 import re
-import time
 
 from loguru import logger
 
