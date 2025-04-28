@@ -1,7 +1,7 @@
-gifts.db
 __pycache__
 .env
-chrome-win64
 .idea
 .ruff_cache
 .venv
+*.db
+*.log
