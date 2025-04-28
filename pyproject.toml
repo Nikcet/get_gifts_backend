@@ -9,6 +9,7 @@ dependencies = [
     "crypto>=1.4.1",
     "dotenv>=0.9.9",
     "fastapi>=0.115.11",
+    "loguru>=0.7.3",
     "pyjwt>=2.10.1",
     "python-multipart>=0.0.20",
     "ruff>=0.11.0",

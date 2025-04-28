@@ -17,9 +17,3 @@ class Gift(BaseModel):
         if not isinstance(value, float) :
             raise ValueError('Cost must be a valid number')
         return value
-
-class User(BaseModel):
-    user_id: str
-    username: str
-    password: Optional[str]
-    
