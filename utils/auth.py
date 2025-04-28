@@ -8,13 +8,13 @@ from datetime import datetime, timedelta
 from passlib.context import CryptContext
 
 from dotenv import load_dotenv
-from models import User
+from models.User import User
 from routers import db
-from config import ALGORITHM
+from utils.config import ALGORITHM
 
 load_dotenv()
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("KEY")
 if SECRET_KEY is None:
     raise ValueError(
         "SECRET_KEY не установлен. Пожалуйста, установите его в переменных окружения."
