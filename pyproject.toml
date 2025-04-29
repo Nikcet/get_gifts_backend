@@ -14,6 +14,7 @@ dependencies = [
     "python-multipart>=0.0.20",
     "ruff>=0.11.0",
     "selenium>=4.29.0",
+    "seleniumbase>=4.35.7",
     "shortuuid>=1.0.13",
     "webdriver-manager>=4.0.2",
 ]
