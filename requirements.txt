@@ -10,3 +10,5 @@ selenium>=4.0.0
 PyJWT~=2.10.1
 dotenv~=0.9.9
 loguru~=0.7.3
+seleniumbase>=4.35.7
+webdriver-manager>=4.0.2
