@@ -6,16 +6,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from utils.auth import get_current_user
 from utils.parsers import parse_url_ozon
 from models.Gift import Gift
-from . import db
-from loguru import logger
-
-logger.add(
-    "logs.log",
-    rotation="10 MB",
-    retention="15 days",
-    compression="zip",
-    level="INFO"
-)
+from . import db, logger
 
 load_dotenv()
 router = APIRouter()

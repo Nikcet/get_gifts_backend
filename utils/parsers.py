@@ -2,15 +2,7 @@ from seleniumbase import SB
 from selenium.common import NoSuchElementException
 import re
 
-from loguru import logger
-
-logger.add(
-    "parser.log",
-    rotation="10 MB",
-    retention="15 days",
-    compression="zip",
-    level="DEBUG",
-)
+from . import logger
 
 headers = "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3&accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
 errors = [NoSuchElementException]
