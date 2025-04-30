@@ -1,7 +1,7 @@
 import os
 from uuid import uuid4
 from dotenv import load_dotenv
-from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi import APIRouter, HTTPException, Depends, Request, status
 
 from utils.auth import get_current_user
 from utils.parsers import parse_url_ozon
@@ -14,75 +14,205 @@ router = APIRouter()
 PRODUCTION = bool(int(os.getenv("PRODUCTION")))
 URL = "/api/" if PRODUCTION else "/"
 
+
 @router.get(URL + "gifts/")
 async def get_gifts() -> dict[str, list[Gift]]:
-    logger.info("Запрос на получение всех подарков")
-    gifts = db.get_all_gifts()
-    logger.info(gifts)
-    return {"gifts": gifts}
+    try:
+        logger.info("Request to get all gifts")
+        gifts = db.get_all_gifts()
+
+        if not gifts:
+            logger.info("No gifts found in database")
+            return {"gifts": []}
+
+        logger.success(f"Successfully fetched {len(gifts)} gifts")
+        return {"gifts": gifts}
+    except Exception as e:
+        logger.error(f"Failed to get gifts: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch gifts",
+        )
 
 
 @router.get(URL + "gifts/{id}")
 async def get_gift(id: str) -> dict[str, Gift]:
-    gift = db.get_gift_by_id(id)
-    if gift:
+    try:
+        logger.info(f"Request to get gift with ID: {id}")
+        gift = db.get_gift_by_id(id)
+
+        if not gift:
+            logger.warning(f"Gift not found with ID: {id}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Gift not found"
+            )
+
+        logger.success(f"Successfully fetched gift: {id}")
         return {"gift": gift}
-    raise HTTPException(status_code=404, detail="The gift does not exist.")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get gift {id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch gift",
+        )
 
 
 @router.get(URL + "gifts/user/{user_id}")
 async def get_gifts_by_user(user_id: str) -> dict[str, list[Gift]]:
-    gifts = db.get_gifts_by_user_id(user_id)
-    return {"gifts": gifts}
+    try:
+        logger.info(f"Request to get gifts for user: {user_id}")
+        gifts = db.get_gifts_by_user_id(user_id)
+
+        if not gifts:
+            logger.info(f"No gifts found for user: {user_id}")
+            return {"gifts": []}
+
+        logger.success(f"Found {len(gifts)} gifts for user: {user_id}")
+        return {"gifts": gifts}
+    except Exception as e:
+        logger.error(f"Failed to get gifts for user {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch user gifts",
+        )
 
 
 @router.post(URL + "gifts/", dependencies=[Depends(get_current_user)])
 async def add_gift(request: Request, data: dict[str, str]) -> dict[str, str]:
-    logger.info("Запрос на добавление подарка: ", data)
-    
-    token = request.headers.get("Authorization").replace("Bearer ", "")
-    current_user = await get_current_user(token)
-
-    if not token:
-        raise HTTPException(status_code=401, detail="Token not provided")
-
-    new_gift = {}
-
-    if "ozon.ru" in data["link"]:
-        try:
-            logger.info("Start to parse OZON.")
-            new_gift = await parse_url_ozon(data["link"])
-            logger.info("Parsing is success. Start to collect new_gift.")
-        except Exception as e:
-            logger.error(f"Error while parsing OZON, {e}")
-            raise HTTPException(status_code=422, detail=f"Failed to add the gift. {e}")
-
     try:
-        new_gift["id"] = str(uuid4())
-        new_gift["user_id"] = current_user["user"]["user_id"]
-        new_gift["is_reserved"] = False
-        new_gift["reserve_owner"] = ""
-        new_gift["link"] = data["link"]
+        logger.info("Starting gift addition process")
+
+        if not data.get("link"):
+            logger.warning("Attempt to add gift without link")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Link is required"
+            )
+
+        token = request.headers.get("Authorization")
+        if not token:
+            logger.warning("Unauthorized gift addition attempt")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authorization token missing",
+            )
+
+        token = token.replace("Bearer ", "")
+        current_user = await get_current_user(token)
+
+        new_gift = {}
+
+        if "ozon.ru" in data["link"]:
+            try:
+                logger.info(f"Parsing OZON link: {data['link']}")
+                new_gift = await parse_url_ozon(data["link"])
+                logger.success("OZON parsing completed successfully")
+            except Exception as e:
+                logger.error(f"OZON parsing failed: {str(e)}")
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Failed to parse product link",
+                ) from e
+
+        try:
+            new_gift.update(
+                {
+                    "id": str(uuid4()),
+                    "user_id": current_user["user"]["user_id"],
+                    "is_reserved": False,
+                    "reserve_owner": "",
+                    "link": data["link"],
+                }
+            )
+            logger.info("Constructed new gift object")
+        except Exception as e:
+            logger.error(f"Gift object creation failed: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Invalid gift data structure",
+            ) from e
+
+        try:
+            db.add_gift(new_gift)
+            logger.success(f"Gift added successfully: {new_gift['id']}")
+            return {"message": "Gift added successfully."}
+        except Exception as e:
+            logger.error(f"Database error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to save gift to database",
+            ) from e
+
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error while collect new_gift, {e}")
-        raise HTTPException(status_code=422, detail=f"Failed to add the gift. {e}")
-    
-    try: 
-        db.add_gift(new_gift)
-        logger.info("new_gift добавлен в БД.")
-        return {"message": "Gift added successfully."}
-    except Exception as e:
-        logger.error(f"Error while adding gift to DB: {e}")
-        raise HTTPException(status_code=422, detail=f"Failed to add the gift. {e}")
+        logger.critical(f"Unexpected error in add_gift: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred",
+        )
 
 
 @router.put(URL + "gifts/{id}")
 async def update_gift(id: str, updated_gift: Gift) -> dict:
-    db.update_gift(id, updated_gift.dict())
-    return {"message": "Gift updated successfully."}
+    try:
+        logger.info(f"Request to update gift: {id}")
+
+        existing_gift = db.get_gift_by_id(id)
+        if not existing_gift:
+            logger.warning(f"Update failed - gift not found: {id}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Gift not found"
+            )
+
+        try:
+            db.update_gift(id, updated_gift.dict())
+            logger.success(f"Gift updated successfully: {id}")
+            return {"message": "Gift updated successfully."}
+        except Exception as e:
+            logger.error(f"Update failed for gift {id}: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update gift",
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error updating gift {id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred",
+        )
 
 
 @router.delete(URL + "gifts/{id}")
 async def delete_gift(id: str) -> dict:
-    db.delete_gift(id)
-    return {"message": f"Gift {id} deleted successfully."}
+    try:
+        logger.info(f"Request to delete gift: {id}")
+
+        existing_gift = db.get_gift_by_id(id)
+        if not existing_gift:
+            logger.warning(f"Delete failed - gift not found: {id}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Gift not found"
+            )
+
+        try:
+            db.delete_gift(id)
+            logger.success(f"Gift deleted successfully: {id}")
+            return {"message": f"Gift {id} deleted successfully."}
+        except Exception as e:
+            logger.error(f"Delete failed for gift {id}: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to delete gift",
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error deleting gift {id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred",
+        )
