@@ -1,4 +1,3 @@
-from utils.sql_api import DB
 from loguru import logger
 
 logger.add(
@@ -9,6 +8,4 @@ logger.add(
     level="INFO"
 )
 
-db = DB()
-
-__all__ = ["db", "logger"]
+__all__ = ["logger"]
