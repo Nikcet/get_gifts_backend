@@ -7,7 +7,7 @@ from . import logger
 headers = "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3&accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
 errors = [NoSuchElementException]
 
-async def parse_url_ozon(url: str):
+def parse_url_ozon(url: str):
     logger.info("_____________________________________________")
     logger.info("Start to parse OZON.")
     name: str = ""
