@@ -4,9 +4,10 @@ from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException, Depends, Request, status
 
 from utils.auth import get_current_user
-from utils.parsers import parse_url_ozon
+# from utils.parsers import parse_url_ozon
 from models.Gift import Gift
 from . import db, logger
+from tasks import parse_ozon_task
 
 load_dotenv()
 router = APIRouter()
@@ -98,51 +99,54 @@ async def add_gift(request: Request, data: dict[str, str]) -> dict[str, str]:
                 detail="Authorization token missing",
             )
 
-        token = token.replace("Bearer ", "")
-        current_user = await get_current_user(token)
-
-        new_gift = {}
+        current_user = await get_current_user(token.replace("Bearer ", ""))
 
         if "ozon.ru" in data["link"]:
             try:
+                gift_id = str(uuid4())
                 logger.info(f"Parsing OZON link: {data['link']}")
-                new_gift = await parse_url_ozon(data["link"])
-                logger.success("OZON parsing completed successfully")
+                task = parse_ozon_task(
+                    data["link"], current_user["user"]["user_id"], gift_id
+                )
+                return {"task_id": task.id, "gift_id": gift_id, "status": "processing"}
+                # new_gift = await parse_url_ozon(data["link"])
+                logger.info("OZON parsing task is started.")
             except Exception as e:
-                logger.error(f"OZON parsing failed: {str(e)}")
+                logger.error(f"Failed to queue parsing task: {str(e)}")
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail="Failed to parse product link",
-                ) from e
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to start parsing process",
+                )
 
-        try:
-            new_gift.update(
-                {
-                    "id": str(uuid4()),
-                    "user_id": current_user["user"]["user_id"],
-                    "is_reserved": False,
-                    "reserve_owner": "",
-                    "link": data["link"],
-                }
-            )
-            logger.info("Constructed new gift object")
-        except Exception as e:
-            logger.error(f"Gift object creation failed: {str(e)}")
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Invalid gift data structure",
-            ) from e
+        # try:
+        #     new_gift = {
+        #         "id": str(uuid4()),
+        #         "user_id": current_user["user"]["user_id"],
+        #         "is_reserved": False,
+        #         "reserve_owner": "",
+        #         "link": data["link"],
+        #         "name": "",
+        #         "photo": "",
+        #         "cost": ""
+        #     }
+        #     logger.success(f"Gift added: {new_gift['id']}")
+        # except Exception as e:
+        #     logger.error(f"Gift object creation failed: {str(e)}")
+        #     raise HTTPException(
+        #         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        #         detail="Invalid gift data structure",
+        #     ) from e
 
-        try:
-            db.add_gift(new_gift)
-            logger.success(f"Gift added successfully: {new_gift['id']}")
-            return {"message": "Gift added successfully."}
-        except Exception as e:
-            logger.error(f"Database error: {str(e)}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to save gift to database",
-            ) from e
+        # try:
+        #     db.add_gift(new_gift)
+        #     logger.success(f"Gift added successfully: {new_gift['id']}")
+        #     return {"message": "Gift added successfully."}
+        # except Exception as e:
+        #     logger.error(f"Database error: {str(e)}")
+        #     raise HTTPException(
+        #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        #         detail="Failed to save gift to database",
+        #     ) from e
 
     except HTTPException:
         raise
@@ -216,3 +220,12 @@ async def delete_gift(id: str) -> dict:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred",
         )
+
+
+@router.get(URL + "gifts/status/{id}")
+async def check_status(id: str):
+    logger.info(f"Try to get gift with id: {id}")
+
+    gift = db.get_gift_by_id(id)
+    logger.info(f"Gift status: {gift}")
+    return {"status": "success" if gift else "processing"}

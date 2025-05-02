@@ -319,6 +319,7 @@ dependencies = [
     { name = "crypto" },
     { name = "dotenv" },
     { name = "fastapi" },
+    { name = "huey" },
     { name = "loguru" },
     { name = "pyjwt" },
     { name = "python-multipart" },
@@ -340,6 +341,7 @@ requires-dist = [
     { name = "crypto", specifier = ">=1.4.1" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "fastapi", specifier = ">=0.115.11" },
+    { name = "huey", specifier = ">=2.5.3" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pyjwt", specifier = ">=2.10.1" },
     { name = "python-multipart", specifier = ">=0.0.20" },
@@ -361,6 +363,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/f5/38/3af3d3633a34a3316
 wheels = [
     { url = "https://files.pythonhosted.org/packages/95/04/ff642e65ad6b90db43e668d70ffb6736436c7ce41fcc549f4e9472234127/h11-0.14.0-py3-none-any.whl", hash = "sha256:e3fe4ac4b851c468cc8363d500db52c2ead036020723024a109d37346efaa761", size = 58259 },
 ]
+
+[[package]]
+name = "huey"
+version = "2.5.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/86/8c/2dfecf3705f5e522097b4e9fb6fb38e627a0340f8362cc05bd7a845e4279/huey-2.5.3.tar.gz", hash = "sha256:089fc72b97fd26a513f15b09925c56fad6abe4a699a1f0e902170b37e85163c7", size = 836918 }
 
 [[package]]
 name = "idna"

@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from routers import gifts, users, db
+from huey_config import huey  # noqa: F401
+from tasks import parse_ozon_task  # noqa: F401
 
 app = FastAPI()
 

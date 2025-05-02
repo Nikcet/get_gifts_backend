@@ -12,3 +12,4 @@ dotenv~=0.9.9
 loguru~=0.7.3
 seleniumbase>=4.35.7
 webdriver-manager>=4.0.2
+huey>=2.5.3
