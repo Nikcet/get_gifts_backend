@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException, Depends, Request, status
 
 from utils.auth import get_current_user
-# from utils.parsers import parse_url_ozon
 from models.Gift import Gift
 from . import db, logger
 from tasks import parse_ozon_task
@@ -63,6 +62,18 @@ async def get_gift(id: str) -> dict[str, Gift]:
 @router.get(URL + "gifts/user/{user_id}")
 async def get_gifts_by_user(user_id: str) -> dict[str, list[Gift]]:
     try:
+        user = db.get_user_by_id(user_id)
+        if user is None: 
+            raise
+        logger.info(f"Find user: {user_id}")
+    except Exception as e:
+        logger.error(f"Failed to find user by user_id {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Failed to find user by user_id",
+        )
+
+    try:
         logger.info(f"Request to get gifts for user: {user_id}")
         gifts = db.get_gifts_by_user_id(user_id)
 
@@ -72,6 +83,7 @@ async def get_gifts_by_user(user_id: str) -> dict[str, list[Gift]]:
 
         logger.success(f"Found {len(gifts)} gifts for user: {user_id}")
         return {"gifts": gifts}
+
     except Exception as e:
         logger.error(f"Failed to get gifts for user {user_id}: {str(e)}")
         raise HTTPException(
