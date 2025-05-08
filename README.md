@@ -1,4 +1,4 @@
-Запустить тестовое окружение:
+Fast run:
 ```bash  
 pip install uv
 ``` 
