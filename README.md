@@ -9,10 +9,13 @@ pip install uv
 uv sync
 ```
 ### Second:
-Create a .env file and copy content from .env.example
+Create a .env file and copy content from .env.example:
+```bash
+cp .env.example .env
+```
 ### Third:
 ```bash
-huey_consumer main.huey -w 4 
+uv run huey_consumer main.huey -w 4 
 ```
 ```bash
 uv run uvicorn main:app --reload
