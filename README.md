@@ -1,16 +1,16 @@
 # REST API of wishlist service: (https://wishesbook.ru/)[wishesbook.ru]
 
-## Fast run:
-### First
+## Fast run
+### First:
 ```bash  
 pip install uv
 ``` 
 ```bash
 uv sync
 ```
-### Second
+### Second:
 Create a .env file and copy content from .env.example
-### Third
+### Third:
 ```bash
 huey_consumer main.huey -w 4 
 ```
