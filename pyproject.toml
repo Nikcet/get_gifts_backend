@@ -11,6 +11,7 @@ dependencies = [
     "fastapi>=0.115.11",
     "huey>=2.5.3",
     "loguru>=0.7.3",
+    "passlib>=1.7.4",
     "pyjwt>=2.10.1",
     "python-multipart>=0.0.20",
     "ruff>=0.11.0",
