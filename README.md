@@ -1,4 +1,4 @@
-# REST API of wishlist service: [https://wishesbook.ru/](wishesbook.ru)
+# REST API of wishlist service: [wishesbook.ru](https://wishesbook.ru)
 
 ## Fast run
 ### First:
