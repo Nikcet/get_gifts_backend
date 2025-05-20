@@ -18,6 +18,7 @@ dependencies = [
     "selenium>=4.29.0",
     "seleniumbase>=4.35.7",
     "shortuuid>=1.0.13",
+    "uvicorn>=0.34.2",
     "webdriver-manager>=4.0.2",
 ]
 
